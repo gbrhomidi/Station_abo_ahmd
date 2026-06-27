@@ -1,0 +1,257 @@
+package com.example
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.hardware.biometrics.BiometricPrompt
+import android.os.Build
+import android.os.Bundle
+import android.os.CancellationSignal
+import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.ui.theme.MyApplicationTheme
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.concurrent.Executors
+
+class MainActivity : ComponentActivity() {
+
+    private lateinit var webView: WebView
+    private val CAMERA_REQUEST = 101
+    private val BIOMETRIC_REQUEST = 102
+    private val ALL_PERMISSIONS = 103
+    private var geminiApiKey: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        // Load Gemini API Key from .env
+        geminiApiKey = loadEnvKey("GEMINI_API_KEY")
+
+        requestAllPermissions()
+        startService(Intent(this, SMSService::class.java))
+
+        setContent {
+            MyApplicationTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    WebViewScreen(modifier = Modifier.padding(innerPadding))
+                }
+            }
+        }
+    }
+
+    private fun loadEnvKey(key: String): String {
+        return try {
+            val envFile = assets.open(".env")
+            val reader = BufferedReader(InputStreamReader(envFile))
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                val trimmed = line?.trim() ?: continue
+                if (trimmed.startsWith(key + "=")) {
+                    return trimmed.substringAfter("=").trim()
+                }
+            }
+            reader.close()
+            envFile.close()
+            ""
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error loading .env: ${e.message}")
+            ""
+        }
+    }
+
+    private fun requestAllPermissions() {
+        val permissions = mutableListOf(Manifest.permission.SEND_SMS, Manifest.permission.CAMERA)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val needed = permissions.filter {
+                checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+            }.toTypedArray()
+            if (needed.isNotEmpty()) {
+                requestPermissions(needed, ALL_PERMISSIONS)
+            }
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    @Composable
+    fun WebViewScreen(modifier: Modifier = Modifier) {
+        AndroidView(
+            modifier = modifier.fillMaxSize(),
+            factory = { context ->
+                WebView(context).apply {
+                    webView = this
+                    settings.javaScriptEnabled = true
+                    settings.allowFileAccess = true
+                    settings.domStorageEnabled = true
+                    settings.databaseEnabled = true
+                    settings.setSupportZoom(true)
+                    settings.builtInZoomControls = true
+                    settings.displayZoomControls = false
+                    settings.javaScriptCanOpenWindowsAutomatically = true
+                    settings.mediaPlaybackRequiresUserGesture = false
+
+                    webViewClient = WebViewClient()
+                    webChromeClient = WebChromeClient()
+
+                    addJavascriptInterface(WebAppInterface(context, this@MainActivity), "AndroidInterface")
+                    loadUrl("http://127.0.0.1:8080/")
+                }
+            }
+        )
+    }
+
+    // Biometric Authentication
+    fun showBiometricPrompt(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val executor = Executors.newSingleThreadExecutor()
+            val biometricPrompt = BiometricPrompt.Builder(this)
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+                .setNegativeButton(getString(R.string.biometric_cancel), executor) { _, _ ->
+                    runOnUiThread { onError("cancelled") }
+                }
+                .build()
+
+            val cancellationSignal = CancellationSignal()
+            cancellationSignal.setOnCancelListener {
+                runOnUiThread { onError("cancelled") }
+            }
+
+            biometricPrompt.authenticate(
+                cancellationSignal, executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: AuthenticationResult?) {
+                        super.onAuthenticationSucceeded(result)
+                        runOnUiThread { onSuccess() }
+                    }
+                    override fun onAuthenticationFailed() {
+                        super.onAuthenticationFailed()
+                        runOnUiThread { onError("failed") }
+                    }
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
+                        super.onAuthenticationError(errorCode, errString)
+                        runOnUiThread { onError(errString?.toString() ?: "error") }
+                    }
+                }
+            )
+        } else {
+            onError("unsupported")
+        }
+    }
+
+    // QR Scanner Bridge
+    fun startQrScanner(callback: (String) -> Unit) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            runOnUiThread {
+                webView.evaluateJavascript("window.startQrScanner && window.startQrScanner()", null)
+            }
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST)
+        }
+    }
+
+    inner class WebAppInterface(private val context: Context, private val activity: MainActivity) {
+
+        @JavascriptInterface
+        fun showToast(message: String) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+
+        @JavascriptInterface
+        fun requestBiometricAuth(): String {
+            val result = JSONObject()
+            activity.showBiometricPrompt(
+                onSuccess = {
+                    result.put("success", true)
+                    result.put("message", "authenticated")
+                    activity.runOnUiThread {
+                        webView.evaluateJavascript("window.onBiometricResult && window.onBiometricResult(${result.toString()})", null)
+                    }
+                },
+                onError = { error ->
+                    result.put("success", false)
+                    result.put("error", error)
+                    activity.runOnUiThread {
+                        webView.evaluateJavascript("window.onBiometricResult && window.onBiometricResult(${result.toString()})", null)
+                    }
+                }
+            )
+            return "requested"
+        }
+
+        @JavascriptInterface
+        fun getGeminiApiKey(): String {
+            return geminiApiKey
+        }
+
+        @JavascriptInterface
+        fun printInvoice(htmlContent: String) {
+            try {
+                val file = java.io.File(context.filesDir, "invoices/invoice_${System.currentTimeMillis()}.html")
+                file.parentFile?.mkdirs()
+                file.writeText(htmlContent, Charsets.UTF_8)
+                val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "text/html")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        @JavascriptInterface
+        fun shareText(text: String) {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            context.startActivity(Intent.createChooser(intent, "مشاركة"))
+        }
+
+        @JavascriptInterface
+        fun getDeviceInfo(): String {
+            val info = JSONObject()
+            info.put("model", Build.MODEL)
+            info.put("manufacturer", Build.MANUFACTURER)
+            info.put("androidVersion", Build.VERSION.RELEASE)
+            info.put("sdk", Build.VERSION.SDK_INT)
+            info.put("packageName", context.packageName)
+            info.put("geminiConfigured", geminiApiKey.isNotEmpty())
+            return info.toString()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            ALL_PERMISSIONS -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "تم منح الأذونات", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+}

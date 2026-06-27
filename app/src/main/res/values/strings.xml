@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">محطة ابو أحمد لمشتقات الديزل</string>
+    <string name="app_version">الإصدار 2.0 Pro</string>
+    <string name="developer_name">المهندس / جبر الحميدي</string>
+    <string name="biometric_prompt_title">تسجيل الدخول البيومتري</string>
+    <string name="biometric_prompt_subtitle">استخدم بصمة إصبعك أو وجهك للوصول السريع</string>
+    <string name="biometric_cancel">إلغاء</string>
+    <string name="channel_name">تنبيهات المحطة</string>
+    <string name="channel_description">إشعارات المخزون والديون والمعاملات</string>
+</resources>

@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a3a5a">
+    <title>محطة ابو أحمد لمشتقات الديزل</title>
+    <script src="html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a3a5a;
+            --primary-light: #2a4a6f;
+            --secondary: #D4AF37;
+            --secondary-light: #f0d878;
+            --danger: #dc3545;
+            --success: #28a745;
+            --info: #17a2b8;
+            --warning: #ffc107;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --text-secondary: #666666;
+            --border: #e0e0e0;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f1115;
+            --card-bg: #1a1d24;
+            --text: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border: #2a2d35;
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --primary: #4da3ff;
+            --primary-light: #3a8eef;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        body { padding-bottom: 80px; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+
+        .fade-in { animation: fadeIn 0.4s ease; }
+        .slide-in { animation: slideIn 0.3s ease; }
+
+        /* Login Screen */
+        .login-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, var(--primary) 0%, #0f1f3a 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px; transition: var(--transition);
+        }
+        .login-screen.hidden { opacity: 0; pointer-events: none; }
+        .login-logo {
+            width: 100px; height: 100px; background: var(--secondary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(212,175,55,0.3);
+            animation: pulse 2s infinite;
+        }
+        .login-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 8px; text-align: center; }
+        .login-subtitle { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 32px; text-align: center; }
+        .login-form { width: 100%; max-width: 340px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; color: rgba(255,255,255,0.9); font-size: 13px; margin-bottom: 6px; font-weight: 600; }
+        .input-field {
+            width: 100%; padding: 14px 16px; border: 2px solid rgba(255,255,255,0.2);
+            border-radius: var(--radius-sm); background: rgba(255,255,255,0.1);
+            color: white; font-size: 15px; outline: none; transition: var(--transition);
+        }
+        .input-field:focus { border-color: var(--secondary); background: rgba(255,255,255,0.15); }
+        .input-field::placeholder { color: rgba(255,255,255,0.4); }
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm);
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--secondary); color: var(--primary); }
+        .btn-primary:hover { background: var(--secondary-light); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(212,175,55,0.4); }
+        .btn-biometric {
+            background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.2);
+            margin-top: 12px;
+        }
+        .btn-biometric:hover { background: rgba(255,255,255,0.2); }
+        .btn-small { padding: 8px 16px; font-size: 13px; width: auto; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-secondary { background: #6c757d; color: white; }
+
+        /* App Container */
+        .app-container { display: none; }
+        .app-container.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Header */
+        .app-header {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--primary); color: white;
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .app-header h1 { font-size: 18px; margin: 0; font-weight: 700; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .icon-btn {
+            width: 36px; height: 36px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.15); color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            transition: var(--transition);
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.1); }
+
+        /* Cards & Sections */
+        .card {
+            background: var(--card-bg); border-radius: var(--radius);
+            padding: 20px; margin: 12px 16px;
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .card-title { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .card-title svg, .card-title .icon { width: 20px; height: 20px; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 16px; }
+        .stat-card {
+            background: var(--card-bg); border-radius: var(--radius); padding: 16px;
+            box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center;
+            position: relative; overflow: hidden; transition: var(--transition);
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        .stat-card.danger::before { background: var(--danger); }
+        .stat-card.success::before { background: var(--success); }
+        .stat-card.warning::before { background: var(--warning); }
+        .stat-value { font-size: 22px; font-weight: 800; color: var(--primary); margin: 8px 0; }
+        .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+        .stat-change { font-size: 11px; margin-top: 4px; font-weight: 700; }
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--danger); }
+
+        /* Progress Bar */
+        .progress-container { margin: 8px 0; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+        .progress-bar {
+            height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; border-radius: 4px; transition: width 0.6s ease;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        .progress-fill.danger { background: var(--danger); }
+        .progress-fill.warning { background: var(--warning); }
+
+        /* Alerts */
+        .alert-banner {
+            background: linear-gradient(90deg, #fff3f3, #ffe0e0); border: 1px solid var(--danger);
+            border-radius: var(--radius-sm); padding: 12px 16px; margin: 12px 16px;
+            display: flex; align-items: center; gap: 12px; font-size: 13px; color: #721c24;
+            animation: fadeIn 0.3s ease;
+        }
+        [data-theme="dark"] .alert-banner { background: linear-gradient(90deg, #3a1c1c, #2a1515); color: #ffaaaa; }
+        .alert-banner .icon { font-size: 20px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+        .form-control {
+            width: 100%; padding: 12px 14px; border: 2px solid var(--border);
+            border-radius: var(--radius-sm); background: var(--card-bg); color: var(--text);
+            font-size: 15px; outline: none; transition: var(--transition); font-family: inherit;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,58,90,0.1); }
+        [data-theme="dark"] .form-control:focus { box-shadow: 0 0 0 3px rgba(77,163,255,0.1); }
+        select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 12px center; padding-left: 30px; }
+
+        /* Quick Actions */
+        .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 16px; }
+        .quick-btn {
+            background: var(--card-bg); border: 2px solid var(--border); border-radius: var(--radius-sm);
+            padding: 14px; text-align: center; cursor: pointer; transition: var(--transition);
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            font-size: 13px; font-weight: 700; color: var(--text);
+        }
+        .quick-btn:hover { border-color: var(--primary); background: rgba(26,58,90,0.05); transform: translateY(-2px); }
+        .quick-btn .icon { font-size: 24px; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .data-table th {
+            background: var(--primary); color: white; padding: 10px 12px;
+            font-weight: 700; text-align: right; white-space: nowrap;
+        }
+        .data-table th:first-child { border-radius: 0 var(--radius-sm) 0 0; }
+        .data-table th:last-child { border-radius: var(--radius-sm) 0 0 0; }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .data-table tr:hover td { background: rgba(26,58,90,0.03); }
+        [data-theme="dark"] .data-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+            background: var(--card-bg); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; padding: 8px 0 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08); backdrop-filter: blur(10px);
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 4px; cursor: pointer; border: none; background: none;
+            color: var(--text-secondary); font-size: 11px; font-weight: 700;
+            transition: var(--transition); position: relative;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active::before {
+            content: ''; position: absolute; top: -8px; width: 40px; height: 3px;
+            background: var(--primary); border-radius: 2px;
+        }
+        .nav-item .icon { font-size: 22px; transition: var(--transition); }
+        .nav-item:hover .icon { transform: scale(1.1); }
+
+        /* Screen Management */
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center;
+            padding: 16px; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal {
+            background: var(--card-bg); border-radius: var(--radius); width: 100%; max-width: 480px;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.9); transition: transform 0.3s ease; border: 1px solid var(--border);
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid var(--border); display: flex;
+            align-items: center; justify-content: space-between;
+        }
+        .modal-title { font-size: 18px; font-weight: 800; color: var(--primary); margin: 0; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: var(--border); color: var(--text); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            transition: var(--transition);
+        }
+        .modal-close:hover { background: var(--danger); color: white; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .modal-footer .btn { flex: 1; }
+
+        /* QR Scanner */
+        .scanner-container {
+            position: relative; width: 100%; max-width: 400px; margin: 0 auto;
+            aspect-ratio: 1; border-radius: var(--radius); overflow: hidden;
+            background: #000; border: 3px solid var(--primary);
+        }
+        .scanner-overlay {
+            position: absolute; inset: 0; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .scanner-frame {
+            width: 70%; height: 70%; border: 2px solid var(--secondary);
+            border-radius: 16px; position: relative;
+        }
+        .scanner-line {
+            position: absolute; left: 0; right: 0; height: 2px;
+            background: var(--secondary); box-shadow: 0 0 8px var(--secondary);
+            animation: scan 2s linear infinite;
+        }
+        .scanner-corner {
+            position: absolute; width: 20px; height: 20px;
+            border-color: var(--secondary); border-style: solid;
+        }
+        .scanner-corner.tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; }
+        .scanner-corner.tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; }
+        .scanner-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; }
+        .scanner-corner.br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; }
+
+        /* VIP Card */
+        .vip-card {
+            background: linear-gradient(135deg, #1a3a5a 0%, #0f1f3a 50%, #D4AF37 100%);
+            border-radius: var(--radius); padding: 24px; color: white;
+            position: relative; overflow: hidden; margin: 12px 16px;
+            box-shadow: 0 8px 32px rgba(26,58,90,0.3);
+        }
+        .vip-card::before {
+            content: ''; position: absolute; top: -50%; right: -50%;
+            width: 200%; height: 200%; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+        }
+        .vip-level { display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(212,175,55,0.2); border: 1px solid var(--secondary);
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+        .vip-points { font-size: 32px; font-weight: 800; margin: 8px 0; }
+        .vip-name { font-size: 18px; font-weight: 700; }
+
+        /* Invoice / Receipt */
+        .invoice-preview {
+            background: white; color: #000; border-radius: var(--radius-sm);
+            padding: 24px; font-family: 'Courier New', monospace; font-size: 13px;
+            border: 2px dashed #ccc; max-width: 100%; overflow-x: auto;
+        }
+        .invoice-header { text-align: center; border-bottom: 2px solid #1a3a5a; padding-bottom: 12px; margin-bottom: 16px; }
+        .invoice-header h2 { margin: 0; color: #1a3a5a; font-size: 20px; }
+        .invoice-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #ccc; }
+        .invoice-total { font-size: 18px; font-weight: 800; border-top: 2px solid #1a3a5a; margin-top: 12px; padding-top: 12px; }
+
+        /* AI Chat */
+        .chat-container { height: 400px; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-bubble {
+            max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 14px;
+            line-height: 1.5; word-wrap: break-word;
+        }
+        .chat-bubble.user { align-self: flex-start; background: var(--primary); color: white; border-radius: 16px 16px 4px 16px; }
+        .chat-bubble.ai { align-self: flex-end; background: var(--border); color: var(--text); border-radius: 16px 16px 16px 4px; }
+        .chat-input-group { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+        .chat-input-group input { flex: 1; }
+
+        /* Charts */
+        .chart-container { height: 220px; position: relative; margin: 16px 0; }
+        .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 180px; gap: 8px; padding: 0 8px; }
+        .bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .bar { width: 100%; border-radius: 6px 6px 0 0; background: linear-gradient(to top, var(--primary), var(--primary-light)); transition: height 0.6s ease; min-height: 4px; }
+        .bar-label { font-size: 10px; color: var(--text-secondary); font-weight: 700; transform: rotate(-30deg); white-space: nowrap; }
+        .bar-value { font-size: 11px; font-weight: 800; color: var(--primary); }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+            .quick-actions { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* Utility */
+        .text-center { text-align: center; }
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-primary { color: var(--primary); }
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: 8px; }
+        .mb-2 { margin-bottom: 16px; }
+        .mt-1 { margin-top: 8px; }
+        .mt-2 { margin-top: 16px; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .gap-2 { gap: 16px; }
+        .w-full { width: 100%; }
+        .hidden { display: none !important; }
+        .badge {
+            display: inline-flex; align-items: center; padding: 4px 10px;
+            border-radius: 20px; font-size: 11px; font-weight: 700;
+        }
+        .badge-success { background: rgba(40,167,69,0.15); color: var(--success); }
+        .badge-danger { background: rgba(220,53,69,0.15); color: var(--danger); }
+        .badge-warning { background: rgba(255,193,7,0.15); color: #856404; }
+        .badge-primary { background: rgba(26,58,90,0.15); color: var(--primary); }
+
+        /* Toggle Switch */
+        .toggle { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle input { display: none; }
+        .toggle-slider {
+            width: 48px; height: 26px; background: var(--border); border-radius: 13px;
+            position: relative; transition: var(--transition);
+        }
+        .toggle-slider::after {
+            content: ''; position: absolute; width: 22px; height: 22px;
+            background: white; border-radius: 50%; top: 2px; right: 2px;
+            transition: var(--transition); box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle input:checked + .toggle-slider { background: var(--success); }
+        .toggle input:checked + .toggle-slider::after { right: 24px; }
+
+        /* Loading */
+        .loading {
+            display: inline-block; width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: white; animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--card-bg); color: var(--text); padding: 12px 20px;
+            border-radius: var(--radius-sm); box-shadow: var(--shadow); border: 1px solid var(--border);
+            font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;
+            animation: fadeIn 0.3s ease; min-width: 280px; max-width: 90vw;
+        }
+        .toast.success { border-right: 4px solid var(--success); }
+        .toast.error { border-right: 4px solid var(--danger); }
+        .toast.warning { border-right: 4px solid var(--warning); }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-logo">⛽</div>
+        <div class="login-title">محطة أبو أحمد</div>
+        <div class="login-subtitle">نظام إدارة مشتقات الديزل المتطور</div>
+        <div class="login-form">
+            <div class="input-group">
+                <label>اسم المستخدم</label>
+                <input type="text" class="input-field" id="loginUsername" placeholder="admin" value="admin">
+            </div>
+            <div class="input-group">
+                <label>كلمة المرور</label>
+                <input type="password" class="input-field" id="loginPassword" placeholder="••••••" value="admin123">
+            </div>
+            <button class="btn btn-primary" onclick="handleLogin()">
+                <span id="loginBtnText">تسجيل الدخول</span>
+            </button>
+            <button class="btn btn-biometric" onclick="handleBiometric()" id="biometricBtn" style="display:none;">
+                🔐 دخول بالبصمة
+            </button>
+        </div>
+        <div style="margin-top: 24px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px;">
+            الإصدار 2.0 Pro | محمي بتشفير AES-256
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="app-header">
+            <h1>⛽ أبو أحمد</h1>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="تبديل الوضع">🌙</button>
+                <button class="icon-btn" onclick="showScreen('notifications')" title="التنبيهات">🔔</button>
+                <button class="icon-btn" onclick="showAboutModal()" title="عن التطبيق">ℹ️</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SCREEN -->
+        <div class="screen active" id="screen-dashboard">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">💰 المبيعات اليوم</div>
+                    <div class="stat-value" id="dashSales">0</div>
+                    <div class="stat-change up">د.ع</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⛽ اللترات المباعة</div>
+                    <div class="stat-value" id="dashLiters">0</div>
+                    <div class="stat-change up">لتر</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">📦 المخزون المتبقي</div>
+                    <div class="stat-value" id="dashStock">0</div>
+                    <div class="stat-change" id="dashStockTrend">لتر</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-label">💳 الديون المستحقة</div>
+                    <div class="stat-value" id="dashDue">0</div>
+                    <div class="stat-change down">د.ع</div>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div id="dashAlerts"></div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-title">⚡ إجراءات سريعة</div>
+                <div class="quick-actions">
+                    <div class="quick-btn" onclick="showScreen('sale')">
+                        <span class="icon">💵</span>
+                        <span>بيع جديد</span>
+                    </div>
+                    <div class="quick-btn" onclick="showScreen('payment')">
+                        <span class="icon">💳</span>
+                        <span>تسديد</span>
+                    </div>
+                    <div class="quick-btn" onclick="showScreen('qr')">
+                        <span class="icon">📷</span>
+                        <span>مسح QR</span>
+                    </div>
+                    <div class="quick-btn" onclick="showScreen('reports')">
+                        <span class="icon">📊</span>
+                        <span>التقارير</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Sales Chart -->
+            <div class="card">
+                <div class="card-title">📈 مبيعات الأيام الأخيرة</div>
+                <div class="chart-container">
+                    <div class="bar-chart" id="dailySalesChart"></div>
+                </div>
+            </div>
+
+            <!-- Inventory Progress -->
+            <div class="card">
+                <div class="card-title">📦 حالة المخزون</div>
+                <div id="inventoryProgress"></div>
+            </div>
+
+            <!-- AI Insight -->
+            <div class="card" style="background: linear-gradient(135deg, rgba(26,58,90,0.05), rgba(212,175,55,0.05));">
+                <div class="card-title">🤖 توقعات الذكاء الاصطناعي</div>
+                <div id="aiInsight" style="font-size: 14px; line-height: 1.8; color: var(--text-secondary);">
+                    <div class="loading"></div> جاري التحليل...
+                </div>
+            </div>
+        </div>
+
+        <!-- SALE SCREEN -->
+        <div class="screen" id="screen-sale">
+            <div class="card">
+                <div class="card-title">💵 تسجيل عملية بيع جديدة</div>
+                <form id="saleForm" onsubmit="executeSale(event)">
+                    <div class="form-group">
+                        <label>العميل</label>
+                        <select class="form-control" name="customer_id" id="saleCustomer" required>
+                            <option value="">-- اختر العميل --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>التعبئة (المخزون)</label>
+                        <select class="form-control" name="refill_id" id="saleRefill" required onchange="updateSalePrice()">
+                            <option value="">-- اختر التعبئة --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الكمية (لتر)</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setQty(100)" style="flex:1;">100</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setQty(500)" style="flex:1;">500</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setQty(1000)" style="flex:1;">1000</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setQty(5000)" style="flex:1;">5000</button>
+                        </div>
+                        <input type="number" class="form-control" name="quantity_liters" id="saleQty" value="100" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>سعر اللتر</label>
+                        <input type="number" class="form-control" name="unit_price" id="salePrice" value="950" required>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ المدفوع (د.ع)</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPaid(0)" style="flex:1;">0</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPaid(50000)" style="flex:1;">50K</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPaid(100000)" style="flex:1;">100K</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPaidFull()" style="flex:1;">كامل</button>
+                        </div>
+                        <input type="number" class="form-control" name="paid_amount" id="salePaid" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع الدفع</label>
+                        <select class="form-control" name="payment_type" id="salePaymentType">
+                            <option value="نقداً">💵 نقداً</option>
+                            <option value="آجل">💳 آجل</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ الاستحقاق</label>
+                        <input type="date" class="form-control" name="due_date" id="saleDueDate" required>
+                    </div>
+                    <div class="form-group" style="background: var(--bg); padding: 12px; border-radius: var(--radius-sm);">
+                        <div style="display:flex; justify-content:space-between; font-weight:700;">
+                            <span>الإجمالي:</span>
+                            <span id="saleTotalPreview" style="color:var(--primary); font-size:18px;">0 د.ع</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:4px; color:var(--text-secondary);">
+                            <span>المتبقي:</span>
+                            <span id="saleDuePreview">0 د.ع</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">✅ تنفيذ البيع وإرسال SMS</button>
+                    <button type="button" class="btn btn-info mt-1" onclick="previewInvoice()">🧾 معاينة الفاتورة</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PAYMENT SCREEN -->
+        <div class="screen" id="screen-payment">
+            <div class="card">
+                <div class="card-title">💳 تسديد دفعة</div>
+                <form id="paymentForm" onsubmit="makePayment(event)">
+                    <div class="form-group">
+                        <label>العميل</label>
+                        <select class="form-control" name="customer_id" id="payCustomer" required>
+                            <option value="">-- اختر العميل --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ المسدد</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPayAmount(10000)" style="flex:1;">10K</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPayAmount(25000)" style="flex:1;">25K</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPayAmount(50000)" style="flex:1;">50K</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="setPayAmount(100000)" style="flex:1;">100K</button>
+                        </div>
+                        <input type="number" class="form-control" name="amount" id="payAmount" value="50000" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ تأكيد التسديد</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📨 إرسال تنبيهات الديون</div>
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
+                    سيتم إرسال رسائل SMS لجميع العملاء المتأخرين عن السداد.
+                </p>
+                <button class="btn btn-danger" onclick="sendOverdueSms()">🚨 إرسال التنبيهات الجماعية</button>
+            </div>
+        </div>
+
+        <!-- QR SCANNER SCREEN -->
+        <div class="screen" id="screen-qr">
+            <div class="card">
+                <div class="card-title">📷 ماسح الباركود / QR</div>
+                <div class="scanner-container" id="qrReader">
+                    <div class="scanner-overlay">
+                        <div class="scanner-frame">
+                            <div class="scanner-corner tl"></div>
+                            <div class="scanner-corner tr"></div>
+                            <div class="scanner-corner bl"></div>
+                            <div class="scanner-corner br"></div>
+                            <div class="scanner-line"></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:center; margin-top:12px; font-size:13px; color:var(--text-secondary);">
+                    وجه الكاميرا نحو رمز QR أو الباركود
+                </div>
+                <div id="qrResult" style="margin-top:16px; display:none;">
+                    <div class="card" style="background:var(--bg);">
+                        <div style="font-weight:700; margin-bottom:8px;">النتيجة:</div>
+                        <div id="qrResultText" style="font-family:monospace; word-break:break-all;"></div>
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button class="btn btn-primary btn-small" onclick="useQrResult()">استخدام</button>
+                            <button class="btn btn-secondary btn-small" onclick="clearQrResult()">مسح</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOMERS SCREEN -->
+        <div class="screen" id="screen-customers">
+            <div class="card">
+                <div class="card-title">👥 إدارة العملاء</div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="customerSearch" placeholder="🔍 البحث بالاسم أو الهاتف..." oninput="filterCustomers()">
+                </div>
+                <div id="customersList"></div>
+            </div>
+        </div>
+
+        <!-- REPORTS SCREEN -->
+        <div class="screen" id="screen-reports">
+            <div class="card">
+                <div class="card-title">📊 التقارير والإحصائيات</div>
+                <div class="quick-actions">
+                    <div class="quick-btn" onclick="generateEodReport()">
+                        <span class="icon">📋</span>
+                        <span>تقرير اليوم</span>
+                    </div>
+                    <div class="quick-btn" onclick="exportData('json')">
+                        <span class="icon">💾</span>
+                        <span>تصدير JSON</span>
+                    </div>
+                    <div class="quick-btn" onclick="showScreen('activity')">
+                        <span class="icon">📝</span>
+                        <span>سجل النشاطات</span>
+                    </div>
+                    <div class="quick-btn" onclick="showScreen('sms')">
+                        <span class="icon">📨</span>
+                        <span>سجل SMS</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📈 المبيعات الشهرية</div>
+                <div class="chart-container">
+                    <div class="bar-chart" id="monthlySalesChart"></div>
+                </div>
+            </div>
+
+            <div id="eodReportContainer"></div>
+        </div>
+
+        <!-- ACTIVITY LOGS SCREEN -->
+        <div class="screen" id="screen-activity">
+            <div class="card">
+                <div class="card-title">📝 سجل النشاطات والتدقيق</div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>المشغل</th><th>الإجراء</th><th>التفاصيل</th><th>التاريخ</th></tr>
+                        </thead>
+                        <tbody id="activityLogsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS LOGS SCREEN -->
+        <div class="screen" id="screen-sms">
+            <div class="card">
+                <div class="card-title">📨 سجل رسائل SMS</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                    <input type="text" class="form-control" id="smsSearch" placeholder="بحث..." style="flex:1; min-width:120px;" oninput="filterSmsLogs()">
+                    <select class="form-control" id="smsStatusFilter" style="flex:1; min-width:120px;" onchange="filterSmsLogs()">
+                        <option value="">كل الحالات</option>
+                        <option value="sent">✅ تم الإرسال</option>
+                        <option value="failed">❌ فشل</option>
+                        <option value="received">📥 مستلم</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>الهاتف</th><th>الرسالة</th><th>النوع</th><th>الحالة</th><th>التاريخ</th></tr>
+                        </thead>
+                        <tbody id="smsLogsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH SCREEN -->
+        <div class="screen" id="screen-search">
+            <div class="card">
+                <div class="card-title">🔍 البحث في السجل</div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="searchQuery" placeholder="اسم العميل، التاريخ، رقم الفاتورة...">
+                </div>
+                <button class="btn btn-primary" onclick="searchTransactions()">🔍 بحث</button>
+                <div class="table-container mt-2">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>رقم العملية</th><th>العميل</th><th>الكمية</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>التاريخ</th></tr>
+                        </thead>
+                        <tbody id="searchResultsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS SCREEN -->
+        <div class="screen" id="screen-settings">
+            <div class="card">
+                <div class="card-title">⚙️ الإعدادات</div>
+
+                <div class="form-group">
+                    <label>تنبيه المخزون المنخفض (لتر)</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" class="form-control" id="thresholdInput" value="1000">
+                        <button class="btn btn-primary btn-small" onclick="saveThreshold()" style="width:auto;">حفظ</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>نقاط الولاء لكل لتر</label>
+                    <input type="number" class="form-control" id="pointsPerLiter" value="1">
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+                    <span>🌙 الوضع الليلي</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+                    <span>🔐 تسجيل الدخول بالبصمة</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="biometricToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+                    <span>🤖 مساعد الذكاء الاصطناعي</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="aiToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0;">
+                    <span>💾 النسخ الاحتياطي التلقائي</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="autoBackupToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <button class="btn btn-info mt-2" onclick="exportData('json')">💾 تصدير نسخة احتياطية</button>
+                <button class="btn btn-secondary mt-1" onclick="showAboutModal()">ℹ️ عن التطبيق</button>
+            </div>
+        </div>
+
+        <!-- AI CHAT SCREEN -->
+        <div class="screen" id="screen-ai">
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div class="card-title" style="padding:16px 20px; margin:0; border-bottom:1px solid var(--border);">
+                    🤖 مساعد أبو أحمد الذكي
+                </div>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-bubble ai">مرحباً! أنا مساعد محطة أبو أحمد الذكي. كيف يمكنني مساعدتك اليوم؟</div>
+                    </div>
+                    <div class="chat-input-group">
+                        <input type="text" class="form-control" id="chatInput" placeholder="اكتب رسالتك هنا..." onkeypress="if(event.key==='Enter')sendAiMessage()">
+                        <button class="btn btn-primary btn-small" onclick="sendAiMessage()" style="width:auto; padding:12px 16px;">📤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS SCREEN -->
+        <div class="screen" id="screen-notifications">
+            <div class="card">
+                <div class="card-title">🔔 التنبيهات والإشعارات</div>
+                <div id="notificationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav no-print" id="bottomNav">
+        <button class="nav-item active" onclick="showScreen('dashboard')" data-screen="dashboard">
+            <span class="icon">🏠</span>
+            <span>الرئيسية</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('sale')" data-screen="sale">
+            <span class="icon">💵</span>
+            <span>البيع</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('customers')" data-screen="customers">
+            <span class="icon">👥</span>
+            <span>العملاء</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('ai')" data-screen="ai">
+            <span class="icon">🤖</span>
+            <span>الذكاء</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('settings')" data-screen="settings">
+            <span class="icon">⚙️</span>
+            <span>الإعدادات</span>
+        </button>
+    </nav>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- About Modal -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">✨ عن التطبيق</h2>
+                <button class="modal-close" onclick="closeModal('aboutModal')">✕</button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <div style="width:80px; height:80px; background:linear-gradient(135deg, var(--primary), var(--secondary)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 16px;">⛽</div>
+                <div style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:4px;">محطة ابو أحمد لمشتقات الديزل</div>
+                <div style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">الإصدار 2.0 Pro</div>
+
+                <div style="background:var(--bg); border-radius:var(--radius-sm); padding:16px; margin-bottom:16px;">
+                    <div style="font-weight:700; margin-bottom:8px;">👨‍💻 المطور</div>
+                    <div style="font-size:15px; color:var(--text-secondary);">المهندس / جبر الحميدي</div>
+                </div>
+
+                <div style="font-weight:700; margin-bottom:12px;">📱 للتواصل المباشر</div>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <a href="whatsapp://send?phone=00967781038203" class="btn btn-small btn-success" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; width:auto;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21z"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z"/><path d="M14 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z"/><path d="M12 16a3 3 0 0 0 2.5-1.5"/></svg>
+                        واتساب
+                    </a>
+                    <a href="fb://profile/jbr.mhdy.alhmydy" class="btn btn-small btn-info" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; width:auto;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a4 4 0 0 0-4 4v3H8v4h3v8h4v-8h3l1-4h-4V6a1 1 0 0 1 1-1h3z"/></svg>
+                        فيسبوك
+                    </a>
+                    <a href="mailto:db7r01@gmail.com" class="btn btn-small btn-danger" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; width:auto;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6L12 13 2 6v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6z"/><path d="M22 6L12 13 2 6"/></svg>
+                        Gmail
+                    </a>
+                </div>
+
+                <div style="margin-top:16px; padding:12px; background:linear-gradient(135deg, rgba(26,58,90,0.05), rgba(212,175,55,0.05)); border-radius:var(--radius-sm); font-style:italic; font-size:13px; color:var(--text-secondary); line-height:1.8;">
+                    تم تصميم هذا التطبيق خصيصاً لمحطة أبو أحمد لمشتقات الديزل.<br>
+                    حيث تم تصميمه وفق أعلى درجات الأمان والذكاء والدقة والسرعة.<br>
+                    متخطياً عند الاختبارات الأخطاء وعدم الدقة.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('aboutModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Preview Modal -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🧾 معاينة الفاتورة</h2>
+                <button class="modal-close" onclick="closeModal('invoiceModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="invoice-preview print-area" id="invoicePreview">
+                    <!-- يتم ملؤه ديناميكياً -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="printInvoice()">🖨️ طباعة</button>
+                <button class="btn btn-success" onclick="shareInvoice()">📤 مشاركة</button>
+                <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Profile Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">👤 ملف العميل</h2>
+                <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+            </div>
+            <div class="modal-body" id="customerModalBody">
+                <!-- يتم ملؤه ديناميكياً -->
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Result Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal" style="max-width:360px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📷 نتيجة المسح</h2>
+                <button class="modal-close" onclick="closeModal('qrModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="qrModalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('qrModal')">موافق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="modal-overlay" id="loadingOverlay" style="background:rgba(0,0,0,0.5);">
+        <div style="text-align:center; color:white;">
+            <div class="loading" style="width:48px; height:48px; border-width:4px; margin:0 auto 16px;"></div>
+            <div style="font-size:16px; font-weight:700;">جاري المعالجة...</div>
+        </div>
+    </div>
